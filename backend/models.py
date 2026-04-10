@@ -1,10 +1,17 @@
+import os
+
 from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
-database_name = 'trivia'
-database_user = 'postgres'
-database_password = 'password'
-database_host = 'localhost:5432'
-database_path = f'postgresql://{database_user}:{database_password}@{database_host}/{database_name}'
+
+database_name = os.getenv('TRIVIA_DB_NAME', os.getenv('POSTGRES_DB', 'trivia'))
+database_user = os.getenv('TRIVIA_DB_USER', os.getenv('POSTGRES_USER', 'myuser'))
+database_password = os.getenv('TRIVIA_DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'mypassword'))
+database_host = os.getenv('TRIVIA_DB_HOST', 'localhost')
+database_port = os.getenv('TRIVIA_DB_PORT', '5432')
+database_path = os.getenv(
+    'DATABASE_URL',
+    f'postgresql://{database_user}:{database_password}@{database_host}:{database_port}/{database_name}'
+)
 
 db = SQLAlchemy()
 
