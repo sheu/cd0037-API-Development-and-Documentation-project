@@ -1,12 +1,21 @@
 import os
 import unittest
 
+from sqlalchemy import text
+
 from flaskr import create_app
 from models import db, Question, Category
 
 
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
+
+    def reset_database(self):
+        db.session.execute(text("DROP TABLE IF EXISTS questions CASCADE"))
+        db.session.execute(text("DROP TABLE IF EXISTS categories CASCADE"))
+        db.session.execute(text("DROP SEQUENCE IF EXISTS questions_id_seq CASCADE"))
+        db.session.execute(text("DROP SEQUENCE IF EXISTS categories_id_seq CASCADE"))
+        db.session.commit()
 
     def setUp(self):
         """Define test variables and initialize app."""
@@ -30,7 +39,7 @@ class TriviaTestCase(unittest.TestCase):
 
         # Bind the app to the current context and create all tables
         with self.app.app_context():
-            db.drop_all()
+            self.reset_database()
             db.create_all()
             self.seed_data()
 
@@ -76,7 +85,7 @@ class TriviaTestCase(unittest.TestCase):
         """Executed after each test"""
         with self.app.app_context():
             db.session.remove()
-            db.drop_all()
+            self.reset_database()
 
     def test_get_categories(self):
         response = self.client.get("/categories")
