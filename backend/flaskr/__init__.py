@@ -32,7 +32,7 @@ def create_app(test_config=None):
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
         return response
 
     @app.route('/categories', methods=['GET'])
@@ -82,6 +82,59 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'deleted': deleted_question_id
+        })
+
+    @app.route('/questions/<int:question_id>', methods=['PUT'])
+    def update_question(question_id):
+        body = request.get_json(silent=True)
+
+        if body is None:
+            abort(400)
+
+        question = db.session.get(Question, question_id)
+        if question is None:
+            abort(404)
+
+        updatable_fields = ('question', 'answer', 'category', 'difficulty')
+        if not any(field in body for field in updatable_fields):
+            abort(400)
+
+        try:
+            if 'question' in body:
+                if not body['question']:
+                    abort(400)
+                question.question = body['question']
+
+            if 'answer' in body:
+                if not body['answer']:
+                    abort(400)
+                question.answer = body['answer']
+
+            if 'category' in body:
+                if not body['category']:
+                    abort(400)
+                question.category = str(body['category'])
+
+            if 'difficulty' in body:
+                if body['difficulty'] in (None, ''):
+                    abort(400)
+                question.difficulty = int(body['difficulty'])
+
+            question.update()
+            updated_question = question.format()
+        except ValueError:
+            db.session.rollback()
+            abort(400)
+        except Exception:
+            db.session.rollback()
+            abort(422)
+        finally:
+            db.session.close()
+
+        return jsonify({
+            'success': True,
+            'updated': question_id,
+            'question': updated_question
         })
 
     @app.route('/questions', methods=['POST'])

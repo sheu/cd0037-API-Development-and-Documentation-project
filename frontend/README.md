@@ -1,36 +1,26 @@
-# Frontend - Trivia API
+# Frontend - Trivia App
 
-## Getting Setup
+## Setup
 
-> _tip_: this frontend is designed to work with [Flask-based Backend](../backend) so it will not load successfully if the backend is not working or not connected. We recommend that you **stand up the backend first**, test using Postman or curl, update the endpoints in the frontend, and then the frontend should integrate smoothly.
+This frontend is configured to proxy API requests to `http://127.0.0.1:5000`, so start the Flask backend first.
 
-### Installing Dependencies
+### Install Dependencies
 
-Recommended node version: 16x
-
-1. **Installing Node and NPM**
-   This project depends on Nodejs and Node Package Manager (NPM). Before continuing, you must download and install Node (the download includes NPM) from [https://nodejs.com/en/download](https://nodejs.org/en/download/).
-
-2. **Installing project dependencies**
-   This project uses NPM to manage software dependencies. NPM Relies on the package.json file located in the `frontend` directory of this repository. After cloning, open your terminal and run:
+From the `frontend` directory:
 
 ```bash
 npm install
 ```
 
-> _tip_: `npm i`is shorthand for `npm install``
+### Run the Development Server
 
-## Required Tasks
-
-### Running Your Frontend in Dev Mode
-
-The frontend app was built using create-react-app. In order to run the app in development mode use `npm start`. You can change the script in the `package.json` file.
-
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser. The page will reload if you make edits.
+This project uses an older Create React App stack. On recent Node.js versions, start it with the OpenSSL compatibility flag:
 
 ```bash
-npm start
+NODE_OPTIONS=--openssl-legacy-provider npm start
 ```
+
+Open `http://127.0.0.1:3000` in the browser.
 
 ### Request Formatting
 
@@ -40,6 +30,17 @@ After you complete your endpoints, ensure you return to the frontend to confirm 
 
 - Endpoints defined as expected by the frontend
 - Response body provided as expected by the frontend
+
+### API Integration Notes
+
+- `package.json` proxies API calls to `http://127.0.0.1:5000/`
+- The app uses these backend routes:
+  - `GET /categories`
+  - `GET /questions?page=<page>`
+  - `GET /categories/<id>/questions`
+  - `POST /questions` for create and search
+  - `DELETE /questions/<id>`
+  - `POST /quizzes`
 
 ### Optional: Updating Endpoints and API behavior
 

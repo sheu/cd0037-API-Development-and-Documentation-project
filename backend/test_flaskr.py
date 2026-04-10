@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from flaskr import create_app
@@ -9,11 +10,11 @@ class TriviaTestCase(unittest.TestCase):
 
     def setUp(self):
         """Define test variables and initialize app."""
-        self.database_name = "trivia_test"
-        self.database_user = "myuser"
-        self.database_password = "mypassword"
-        self.database_host = "localhost"
-        self.database_port = "5432"
+        self.database_name = os.getenv("TRIVIA_TEST_DB_NAME", "trivia_test")
+        self.database_user = os.getenv("TRIVIA_DB_USER", os.getenv("POSTGRES_USER", "myuser"))
+        self.database_password = os.getenv("TRIVIA_DB_PASSWORD", os.getenv("POSTGRES_PASSWORD", "mypassword"))
+        self.database_host = os.getenv("TRIVIA_DB_HOST", "localhost")
+        self.database_port = os.getenv("TRIVIA_DB_PORT", "5432")
         self.database_path = (
             f"postgresql://{self.database_user}:{self.database_password}@"
             f"{self.database_host}:{self.database_port}/{self.database_name}"
@@ -132,6 +133,57 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertFalse(data["success"])
         self.assertEqual(data["message"], "resource not found")
+
+    def test_update_question(self):
+        with self.app.app_context():
+            question_id = Question.query.first().id
+
+        response = self.client.put(
+            f"/questions/{question_id}",
+            json={
+                "question": "Updated prompt?",
+                "answer": "Updated answer",
+                "difficulty": 5,
+            },
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data["success"])
+        self.assertEqual(data["updated"], question_id)
+        self.assertEqual(data["question"]["question"], "Updated prompt?")
+        self.assertEqual(data["question"]["difficulty"], 5)
+
+        with self.app.app_context():
+            updated_question = db.session.get(Question, question_id)
+            self.assertEqual(updated_question.question, "Updated prompt?")
+            self.assertEqual(updated_question.answer, "Updated answer")
+            self.assertEqual(updated_question.difficulty, 5)
+
+    def test_update_missing_question(self):
+        response = self.client.put(
+            "/questions/9999",
+            json={"question": "No record here"},
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(data["success"])
+        self.assertEqual(data["message"], "resource not found")
+
+    def test_update_question_bad_request(self):
+        with self.app.app_context():
+            question_id = Question.query.first().id
+
+        response = self.client.put(
+            f"/questions/{question_id}",
+            json={},
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(data["success"])
+        self.assertEqual(data["message"], "bad request")
 
     def test_create_question(self):
         payload = {
